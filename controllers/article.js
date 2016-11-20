@@ -1,4 +1,5 @@
 const Article = require('mongoose').model('Article');
+const Category = require('mongoose').model('Category');
 
 module.exports = {
     createGet: (req, res) => {
@@ -10,12 +11,15 @@ module.exports = {
         }
 
         if (errorMsg) {
+            req.session.returnUrl = '/article/create'
             req.flash('error', errorMsg)
             return res.redirect('/user/login');
             //return res.render('article/create', {error: errorMsg});
         }
 
-        res.render('article/create', {error: req.flash('error')});
+        Category.find({}).then(categories => {
+            res.render('article/create', {error: req.flash('error'), categories: categories});
+        })
     },
 
     createPost: (req, res, next) => {
@@ -51,15 +55,27 @@ module.exports = {
             return res.redirect('/user/login')
         }
 
-        Article.findById(id)
-            .then(article => {
-                req.user.isInRole('Admin').then(isAdmin => {
-                    if (!isAdmin && !req.user.isAuthor(article)) {
-                        return res.redirect('/');
+        Article.findById(id).then(article => {
+            req.user.isInRole('Admin').then(isAdmin => {
+                if (!isAdmin && !req.user.isAuthor(article)) {
+                    return res.redirect('/');
+                }
+
+                Category.find({}).then(categories => {
+                    let catg = []
+                    for (let i = 0; i < categories.length; i++) {
+                        catg.push({
+                            _id: categories[i]._id,
+                            name: categories[i].name,
+                            isSelected: article.category.toString() === categories[i]._id.toString(),
+                        })
                     }
+
+                    article.categories = catg
                     res.render('article/edit', article);
                 })
             })
+        })
             .catch(err => {
                 res.render('article/edit', {error: err.message});
             })
@@ -87,32 +103,55 @@ module.exports = {
             return res.render('article/edit', {error: errorMsg})
         }
 
-        Article.findById(id)
-            .then(article => {
-                req.user.isInRole('Admin').then(isAdmin => {
-                    if (!isAdmin && !req.user.isAuthor(article)) {
-                        return res.redirect('/');
+        Article.findById(id).populate('category').then(article => {
+            if (article.category.id !== articleArgs.category) {
+                article.category.articles.remove(article.id);
+                article.category.save();
+            }
+
+            article.category = articleArgs.category;
+            article.title = articleArgs.title;
+            article.content = articleArgs.content;
+
+            article.save((err) => {
+                if (err) {
+                    console.log(err.message)
+                }
+
+                Category.findById(article.category).then(category => {
+                    if (category.articles.indexOf(article.id) === -1) {
+                        category.articles.push(article.id);
+                        category.save();
                     }
 
-                    Article
-                        .update({_id: id},
-                            {
-                                $set: {
-                                    title: articleArgs.title,
-                                    content: articleArgs.content
-                                }
-                            })
-                        .then(updateStatus => {
-                            res.redirect(`/article/details/${id}`);
-                        })
-                        .catch(err => {
-                            res.render('article/details', {error: err.message});
-                        })
+                    res.redirect(`/article/details/${id}`);
                 })
+            });
+        });
+
+            /*req.user.isInRole('Admin').then(isAdmin => {
+                if (!isAdmin && !req.user.isAuthor(article)) {
+                    return res.redirect('/');
+                }
+
+                Article.update({_id: id},
+                    {
+                        $set: {
+                            title: articleArgs.title,
+                            content: articleArgs.content
+                        }
+                    })
+                    .then(updateStatus => {
+                        res.redirect(`/article/details/${id}`);
+                    })
+                    .catch(err => {
+                        res.render('article/details', {error: err.message});
+                    })
             })
+        })
             .catch(err => {
                 res.render('article/edit', {error: err.message});
-            })
+            })*/
     },
 
     deleteGet: (req, res, next) => {
@@ -125,6 +164,7 @@ module.exports = {
 
         Article
             .findById(id)
+            .populate('category')
             .then(article => {
                 req.user.isInRole('Admin').then(isAdmin => {
                     if (!isAdmin && !req.user.isAuthor(article)) {
@@ -170,12 +210,12 @@ module.exports = {
 
         Article.findById(id).populate('author').then(article => {
             if (!req.user) {
-                return res.render('article/details', { article: article, isUserAuthorized: false });
+                return res.render('article/details', {article: article, isUserAuthorized: false});
             }
 
             req.user.isInRole('Admin').then(isAdmin => {
                 let isUserAuthorized = isAdmin || req.user.isAuthor(article)
-                res.render('article/details', { article: article, isUserAuthorized: isUserAuthorized });
+                res.render('article/details', {article: article, isUserAuthorized: isUserAuthorized});
             });
 
         })

@@ -26,6 +26,10 @@ categorySchema.post('save', function (error, doc, next) {
     }
 })
 
+categorySchema.post('remove', function(doc) {
+    console.log('Category %s has been removed', doc._id);
+});
+
 categorySchema.set('versionKey', false)
 
 const Category = mongoose.model('Category', categorySchema);

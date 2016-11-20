@@ -29,4 +29,7 @@ Run an update query on the not-updated entities after every change that we made 
 
 - `db.getCollection('users').update({articles: {$exists: false}}, { $set: {articles: []}}, {multi: true})` - mass update query
 - `db.getCollection('users').update({roles: {$exists: false}}, { $set: {roles: [ObjectId('582b0856165b9a22f4213d90')]}}, {multi: true})` - set default role 'User'
+- `db.getCollection('articles').update({category: {$exists: false}}, { $set: {category: ObjectId('58315fff6247e3c064eeaf27')}}, {multi: true})`
+
+
 
