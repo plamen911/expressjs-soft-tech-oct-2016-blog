@@ -23,6 +23,10 @@ git remote add origin https://github.com/plamen911/expressjs-exam-lets-build-twi
 git push -u origin master
 ```
 
-#### OTHER
+#### Migrations
+
+Run an update query on the not-updated entities after every change that we made to the schema
 
 - `db.getCollection('users').update({articles: {$exists: false}}, { $set: {articles: []}}, {multi: true})` - mass update query
+- `db.getCollection('users').update({roles: {$exists: false}}, { $set: {roles: [ObjectId('582b0856165b9a22f4213d90')]}}, {multi: true})` - set default role 'User'
+

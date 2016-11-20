@@ -3,14 +3,16 @@
         <div class="col-md-12">
             <article>
                 <header>
-                    <h2>{{title}}</h2>
+                    <h2>{{article.title}}</h2>
                 </header>
-                <p>{{content}}</p>
-                <small class="author">{{author.fullName}}</small>
+                <p>{{article.content}}</p>
+                <small class="author">{{article.author.fullName}}</small>
                 <footer>
                     <div class="pull-right">
-                        <a class="btn btn-success btn-xs" href="/article/edit/{{_id}}">Edit</a>
-                        <a class="btn btn-danger btn-xs" href="/article/delete/{{_id}}">Delete</a>
+                        {{#if isUserAuthorized }}
+                            <a class="btn btn-success btn-xs" href="/article/edit/{{article._id}}">Edit</a>
+                            <a class="btn btn-danger btn-xs" href="/article/delete/{{article._id}}">Delete</a>
+                        {{/if}}
                         <a class="btn btn-default btn-xs" href="/">Back &raquo;</a>
                     </div>
                 </footer>
