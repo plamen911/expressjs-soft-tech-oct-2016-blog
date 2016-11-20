@@ -211,7 +211,7 @@ module.exports = {
   details: (req, res, next) => {
     const id = req.params.id
 
-    Article.findById(id).populate('author').then(article => {
+    Article.findById(id).populate('author tags').then(article => {
       if (!req.user) {
         return res.render('article/details', {article: article, isUserAuthorized: false})
       }

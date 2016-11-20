@@ -2,6 +2,7 @@ const userController = require('./../controllers/user')
 const articleController = require('./../controllers/article')
 const homeController = require('./../controllers/home')
 const adminController = require('./../controllers/admin/admin')
+const tagController = require('./../controllers/tag')
 
 module.exports = (app) => {
   app.get('/', homeController.index)
@@ -22,6 +23,8 @@ module.exports = (app) => {
   app.get('/article/delete/:id', articleController.deleteGet)
   app.post('/article/delete/:id', articleController.deletePost)
   app.get('/article/details/:id', articleController.details)
+
+  app.get('/tag/:name', tagController.listArticlesByTag)
 
     // make every next routing below to be accessible only to Admin
   app.use((req, res, next) => {
