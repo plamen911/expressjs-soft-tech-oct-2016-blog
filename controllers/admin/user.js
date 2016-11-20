@@ -2,116 +2,116 @@ const User = require('mongoose').model('User')
 const Role = require('mongoose').model('Role')
 
 module.exports = {
-    all: (req, res, next) => {
-        User.find({}).then(users => {
-            for (let user of users) {
-                user.isInRole('Admin').then(isAdmin => {
-                    user.isAdmin = isAdmin
-                })
-            }
-
-            res.render('admin/user/all', {users: users})
+  all: (req, res, next) => {
+    User.find({}).then(users => {
+      for (let user of users) {
+        user.isInRole('Admin').then(isAdmin => {
+          user.isAdmin = isAdmin
         })
-    },
+      }
 
-    editGet: (req, res, next) => {
-        let id = req.params.id;
-        User.findById(id).then(user => {
-            Role.find({}).then(roles => {
-                for (let role of roles) {
-                    if (user.roles.indexOf(role.id) !== -1) {
-                        role.isChecked = true
-                    }
-                }
+      res.render('admin/user/all', {users: users})
+    })
+  },
 
-                res.render('admin/user/edit', {user: user, roles: roles})
-            });
-        });
-    },
+  editGet: (req, res, next) => {
+    let id = req.params.id
+    User.findById(id).then(user => {
+      Role.find({}).then(roles => {
+        for (let role of roles) {
+          if (user.roles.indexOf(role.id) !== -1) {
+            role.isChecked = true
+          }
+        }
 
-    editPost: (req, res, next) => {
-        let id = req.params.id;
-        let userArgs = req.body;
+        res.render('admin/user/edit', {user: user, roles: roles})
+      })
+    })
+  },
 
-        User.findOne({email: userArgs.email, _id: {$ne: id}}).then(user => {
-            let errorMsg = '';
-            if (user) {
-                errorMsg = 'User with the same username exists!';
-            } else if (!userArgs.email) {
-                errorMsg = 'Email cannot be null'
-            } else if (!userArgs.fullName) {
-                errorMsg = 'Name cannot be null'
-            } else if (userArgs.password !== userArgs.confirmedPassword) {
-                errorMsg = 'Passwords do not match'
-            }
+  editPost: (req, res, next) => {
+    let id = req.params.id
+    let userArgs = req.body
 
-            console.log('errorMsg: ', errorMsg)
+    User.findOne({email: userArgs.email, _id: {$ne: id}}).then(user => {
+      let errorMsg = ''
+      if (user) {
+        errorMsg = 'User with the same username exists!'
+      } else if (!userArgs.email) {
+        errorMsg = 'Email cannot be null'
+      } else if (!userArgs.fullName) {
+        errorMsg = 'Name cannot be null'
+      } else if (userArgs.password !== userArgs.confirmedPassword) {
+        errorMsg = 'Passwords do not match'
+      }
 
-            if (errorMsg) {
+      console.log('errorMsg: ', errorMsg)
+
+      if (errorMsg) {
                 // userArgs.user.id = id
-                if (!userArgs.user) {
-                    userArgs.user = {};
-                }
+        if (!userArgs.user) {
+          userArgs.user = {}
+        }
 
-                userArgs.user.id = id
+        userArgs.user.id = id
 
-                userArgs.error = errorMsg;
-                res.render('admin/user/edit', userArgs);
-            } else {
-                Role.find({}).then(roles => {
-                    if (!userArgs.roles) {
-                        userArgs.roles = [];
-                    }
+        userArgs.error = errorMsg
+        res.render('admin/user/edit', userArgs)
+      } else {
+        Role.find({}).then(roles => {
+          if (!userArgs.roles) {
+            userArgs.roles = []
+          }
 
-                    let newRoles = roles.filter(role => {
-                        return userArgs.roles.indexOf(role.name) !== -1
-                    }).map(role => {
-                        return role.id
-                    });
+          let newRoles = roles.filter(role => {
+            return userArgs.roles.indexOf(role.name) !== -1
+          }).map(role => {
+            return role.id
+          })
 
-                    User.findOne({_id: id}).then(user => {
-                        user.email = userArgs.email;
-                        user.fullName = userArgs.fullName;
+          User.findOne({_id: id}).then(user => {
+            user.email = userArgs.email
+            user.fullName = userArgs.fullName
 
-                        console.log('user: ', user)
+            console.log('user: ', user)
 
-                        let passwordHash = user.passwordHash
-                        if (userArgs.password) {
-                            passwordHash = encryption.hashPassword(userArgs.password, user.salt);
-                        }
-
-                        user.passwordHash = passwordHash;
-                        user.roles = newRoles;
-
-                        user.save((err) => {
-                            if (err) {
-                                console.log('err: ', err);
-                                res.redirect('/')
-                            } else {
-                                res.redirect('/admin/user/all')
-                            }
-                        })
-                    })
-                })
+            let passwordHash = user.passwordHash
+            if (userArgs.password) {
+              passwordHash = encryption.hashPassword(userArgs.password, user.salt)
             }
-        });
-    },
 
-    deleteGet: (req, res, next) => {
-        let id = req.params.id;
-        User.findById(id).then(user => {
-            res.render('admin/user/delete', {userToDelete: user})
+            user.passwordHash = passwordHash
+            user.roles = newRoles
+
+            user.save((err) => {
+              if (err) {
+                console.log('err: ', err)
+                res.redirect('/')
+              } else {
+                res.redirect('/admin/user/all')
+              }
+            })
+          })
         })
-    },
+      }
+    })
+  },
 
-    deletePost: (req, res, next) => {
-        let id = req.params.id;
+  deleteGet: (req, res, next) => {
+    let id = req.params.id
+    User.findById(id).then(user => {
+      res.render('admin/user/delete', {userToDelete: user})
+    })
+  },
 
-        User.findOneAndRemove({_id: id}).then(user => {
-            console.log('inside findOneAndRemove...')
-            user.prepareDelete(() => {
-                res.redirect('/admin/user/all');
-            });
-        })
-    }
+  deletePost: (req, res, next) => {
+    let id = req.params.id
+
+    User.findOneAndRemove({_id: id}).then(user => {
+      console.log('inside findOneAndRemove...')
+      user.prepareDelete(() => {
+        res.redirect('/admin/user/all')
+      })
+    })
+  }
 }
