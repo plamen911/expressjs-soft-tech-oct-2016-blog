@@ -94,7 +94,7 @@ const User = mongoose.model('User', userSchema)
 module.exports = User
 
 module.exports.seedAdmin = () => {
-  let email = 'plamen326@gmail.com'
+  let email = 'admin'
   User.findOne({email: email}).then(admin => {
     if (!admin) {
       Role.findOne({name: 'Admin'}).then(role => {

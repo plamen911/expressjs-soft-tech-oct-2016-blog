@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate')
 
 let articleSchema = mongoose.Schema({
   title: {type: String, required: true},
@@ -76,6 +77,8 @@ articleSchema.method({
 articleSchema.post('remove', function (doc) {
   console.log('Article %s has been removed', doc._id)
 })
+
+articleSchema.plugin(mongoosePaginate);
 
 const Article = mongoose.model('Article', articleSchema)
 

@@ -22,4 +22,15 @@
             </div>
         {{/each}}
     </div>
+
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="dataTables_info" id="example_info">Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} entries</div>
+        </div>
+        <div class="col-xs-6">
+            <div class="dataTables_paginate paging_bootstrap">
+                {{{ pagination.links }}}
+            </div>
+        </div>
+    </div>
 </div>
